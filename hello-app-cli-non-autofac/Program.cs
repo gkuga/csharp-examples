@@ -1,28 +1,19 @@
 ﻿using System;
-using Autofac;
 
-namespace hello_app_cli_autofac
+namespace hello_app_cli_non_autofac
 {
     class Program
     {
-        private static IContainer Container { get; set; }
-
         static void Main(string[] args)
         {
-            var builder = new ContainerBuilder();
-            builder.RegisterType<GreetingWordsCreator>().As<IGreetingWordsCreator>();
-            builder.RegisterType<Greeter>().As<IGreeter>();
-            Container = builder.Build();
             Greeting();
         }
 
         public static void Greeting()
         {
-            using (var scope = Container.BeginLifetimeScope())
-            {
-                var greeter = scope.Resolve<IGreeter>();
-                greeter.Greeting();
-            }
+            IGreetingWordsCreator creator = new GreetingWordsCreator();
+            IGreeter greeter = new Greeter(creator);
+            greeter.Greeting();
         }
     }
 
