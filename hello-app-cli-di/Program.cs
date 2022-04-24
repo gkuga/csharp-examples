@@ -8,8 +8,15 @@ namespace hello_app_cli_di
 
         static void Main(string[] args)
         {
+            NoDIGreeting();
             Container = new Container();
-						Greeting();
+            Greeting();
+        }
+
+        public static void NoDIGreeting()
+        {
+            var greeter = new NoDIGreeter();
+            greeter.Greeting();
         }
 
         public static void Greeting()
@@ -35,6 +42,19 @@ namespace hello_app_cli_di
             IGreetingWordsCreator creator = new GreetingWordsCreator();
             Greeter = new Greeter(creator);
             GreeterFactory = new GreeterFactory(creator);
+        }
+    }
+
+    public interface IServiceLocator
+    {
+    }
+
+    public class ServiceLocator : IServiceLocator;
+    {
+        private static NoDIGreetingWordsCreator Creator { get; }
+        public ServiceLocator(NoDIGreetingWordsCreator creator)
+        {
+            this.Creator = creator;
         }
     }
 
@@ -76,11 +96,36 @@ namespace hello_app_cli_di
         }
     }
 
+    public class NoDIGreeter
+    {
+        private NoDIGreetingWordsCreator _creator;
+        public NoDIGreeter()
+        {
+            this._creator = new NoDIGreetingWordsCreator("New No DI Hello World!");
+        }
+        public void Greeting()
+        {
+            Console.WriteLine(this._creator.Create());
+        }
+    }
+
+    public class SLGreeter
+    {
+        IServiceLocator _locator;
+        public SLGreeter()
+        {
+            this._creator = new NoDIGreetingWordsCreator("New No DI Hello World!");
+        }
+        public void Greeting()
+        {
+            Console.WriteLine(this._creator.Create());
+        }
+    }
+
     public interface IGreetingWordsCreator
     {
         public string Create();
     }
-
     public class GreetingWordsCreator : IGreetingWordsCreator
     {
         public GreetingWordsCreator()
@@ -90,6 +135,18 @@ namespace hello_app_cli_di
         public string Create()
         {
             return "Hello World!";
+        }
+    }
+    public class NoDIGreetingWordsCreator
+    {
+        private string _words;
+        public NoDIGreetingWordsCreator(string words)
+        {
+            this._words = words;
+        }
+        public string Create()
+        {
+            return this._words;
         }
     }
 }
