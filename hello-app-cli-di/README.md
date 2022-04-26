@@ -1,13 +1,12 @@
 
 ```mermaid
 classDiagram
-class NoDIGreeter {
-    -NoDIGreetingWordsCreator _creator
-    +NoDIGreeter()
+class Greeter {
+    -GreetingWordsCreator _creator
     +Greeting()
 }
-class NoDIGreetingWordsCreator {
+class GreetingWordsCreator {
     +Create()
 }
-NoDIGreeter --|> NoDIGreetingWordsCreator
+Greeter --|> GreetingWordsCreator
 ```
