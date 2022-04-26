@@ -9,8 +9,18 @@ namespace hello_app_cli_di
         static void Main(string[] args)
         {
             NoDIGreeting();
+            SLGreeting();
             Container = new Container();
-            Greeting();
+            DIGreeting();
+            FactoryGreeting();
+        }
+
+        public static void SLGreeting()
+        {
+            var creator = new GreetingWordsCreator();
+            var locator = new ServiceLocator(creator);
+            var greeter = new SLGreeter(locator);
+            greeter.Greeting();
         }
 
         public static void NoDIGreeting()
@@ -19,10 +29,16 @@ namespace hello_app_cli_di
             greeter.Greeting();
         }
 
-        public static void Greeting()
+        public static void DIGreeting()
         {
             Container.Greeter.Greeting();
             Container.GreeterFactory.create().Greeting();
+        }
+
+        public static void FactoryGreeting()
+        {
+            var greeter = new FactoryGreeter();
+            greeter.Greeting();
         }
     }
 
@@ -45,14 +61,10 @@ namespace hello_app_cli_di
         }
     }
 
-    public interface IServiceLocator
+    public class ServiceLocator
     {
-    }
-
-    public class ServiceLocator : IServiceLocator;
-    {
-        private static NoDIGreetingWordsCreator Creator { get; }
-        public ServiceLocator(NoDIGreetingWordsCreator creator)
+        public GreetingWordsCreator Creator { get; }
+        public ServiceLocator(GreetingWordsCreator creator)
         {
             this.Creator = creator;
         }
@@ -111,14 +123,14 @@ namespace hello_app_cli_di
 
     public class SLGreeter
     {
-        IServiceLocator _locator;
-        public SLGreeter()
+        private ServiceLocator _locator;
+        public SLGreeter(ServiceLocator locator)
         {
-            this._creator = new NoDIGreetingWordsCreator("New No DI Hello World!");
+            this._locator = locator;
         }
         public void Greeting()
         {
-            Console.WriteLine(this._creator.Create());
+            Console.WriteLine(this._locator.Creator.Create());
         }
     }
 
@@ -126,17 +138,15 @@ namespace hello_app_cli_di
     {
         public string Create();
     }
+
     public class GreetingWordsCreator : IGreetingWordsCreator
     {
-        public GreetingWordsCreator()
-        {
-        }
-
         public string Create()
         {
             return "Hello World!";
         }
     }
+
     public class NoDIGreetingWordsCreator
     {
         private string _words;
@@ -147,6 +157,37 @@ namespace hello_app_cli_di
         public string Create()
         {
             return this._words;
+        }
+    }
+
+    public interface IFactory<T>
+    {
+        T Create(object context);
+    }
+    public interface IGreetingWordsCreatorFactory
+    {
+        IGreetingWordsCreator Create();
+    }
+    public class GreetingWordsCreatorFactory : IGreetingWordsCreatorFactory
+    {
+        public IGreetingWordsCreator Create()
+        {
+            return new GreetingWordsCreator();
+        }
+    }
+    public class FactoryGreeter
+    {
+        public static IGreetingWordsCreatorFactory Factory { get; set; } = new GreetingWordsCreatorFactory();
+
+        private IGreetingWordsCreator _creator;
+
+        public FactoryGreeter()
+        {
+            this._creator = Factory.Create();
+        }
+        public void Greeting()
+        {
+            Console.WriteLine(this._creator.Create());
         }
     }
 }
