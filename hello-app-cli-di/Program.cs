@@ -21,6 +21,8 @@ namespace hello_app_cli_di
             var locator = new ServiceLocator();
             locator.Register<IGreetingWordsCreator, GreetingWordsCreator>();
             ServiceLocator.Locator = locator;
+            var greeter = new SLGreeter();
+            greeter.Greeting();
         }
 
         public static void NoDIGreeting()
