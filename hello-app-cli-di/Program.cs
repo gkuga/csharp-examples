@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 
 namespace hello_app_cli_di
 {
@@ -17,10 +18,9 @@ namespace hello_app_cli_di
 
         public static void SLGreeting()
         {
-            var creator = new GreetingWordsCreator();
-            var locator = new ServiceLocator(creator);
-            var greeter = new SLGreeter(locator);
-            greeter.Greeting();
+            var locator = new ServiceLocator();
+            locator.Register<IGreetingWordsCreator, GreetingWordsCreator>();
+            ServiceLocator.Locator = locator;
         }
 
         public static void NoDIGreeting()
@@ -41,13 +41,11 @@ namespace hello_app_cli_di
             greeter.Greeting();
         }
     }
-
     public interface IContainer
     {
         public IGreeter Greeter { get; }
         public IGreeterFactory GreeterFactory { get; }
     }
-
     public class Container : IContainer
     {
         public IGreeter Greeter { get; }
@@ -60,16 +58,21 @@ namespace hello_app_cli_di
             GreeterFactory = new GreeterFactory(creator);
         }
     }
-
     public class ServiceLocator
     {
-        public GreetingWordsCreator Creator { get; }
-        public ServiceLocator(GreetingWordsCreator creator)
+        public static ServiceLocator Locator { get; set; } = new ServiceLocator();
+
+        private IDictionary<Type, Type> _registry = new Dictionary<Type, Type>();
+
+        public void Register<TKey, TValue>()
         {
-            this.Creator = creator;
+            _registry[typeof(TKey)] = typeof(TValue);
+        }
+        public static TKey Resolve<TKey>()
+        {
+            return (TKey)Activator.CreateInstance(Locator._registry[typeof(TKey)]);
         }
     }
-
     public interface IGreeterFactory
     {
         public IGreeter create();
@@ -123,14 +126,15 @@ namespace hello_app_cli_di
 
     public class SLGreeter
     {
-        private ServiceLocator _locator;
-        public SLGreeter(ServiceLocator locator)
+        private IGreetingWordsCreator _creator;
+
+        public SLGreeter()
         {
-            this._locator = locator;
+            this._creator = ServiceLocator.Resolve<IGreetingWordsCreator>();
         }
         public void Greeting()
         {
-            Console.WriteLine(this._locator.Creator.Create());
+            Console.WriteLine(this._creator.Create());
         }
     }
 
